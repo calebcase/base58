@@ -11,7 +11,7 @@ import (
 
 func cannot(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%+v\n")
+		fmt.Fprintf(os.Stderr, "%+v\n", err)
 		panic(err)
 	}
 }
