@@ -2,6 +2,7 @@ package shootout
 
 import (
 	"crypto/rand"
+	"os"
 	"testing"
 
 	btcutil "github.com/btcsuite/btcutil/base58"
@@ -9,113 +10,78 @@ import (
 	mrtron "github.com/mr-tron/base58"
 )
 
-var decoded []byte
 var encoded string
 
-func BenchmarkCalebEncode1K(b *testing.B) {
-	src := make([]byte, 1024)
-	rand.Read(src)
-
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = caleb.Encode(src)
-	}
-
-	encoded = r
+type EncodeCase struct {
+	Name string
+	Src  []byte
 }
 
-func BenchmarkCalebEncode10K(b *testing.B) {
-	src := make([]byte, 10240)
-	rand.Read(src)
+var EncodeCases []EncodeCase
 
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = caleb.Encode(src)
+func TestMain(m *testing.M) {
+	KB1 := make([]byte, 1024)
+	rand.Read(KB1)
+
+	KB10 := make([]byte, 10240)
+	rand.Read(KB10)
+
+	KB100 := make([]byte, 102400)
+	rand.Read(KB100)
+
+	EncodeCases = []EncodeCase{
+		EncodeCase{
+			Name: "1K",
+			Src:  KB1,
+		},
+		EncodeCase{
+			Name: "10K",
+			Src:  KB10,
+		},
+		EncodeCase{
+			Name: "100K",
+			Src:  KB100,
+		},
 	}
 
-	encoded = r
+	os.Exit(m.Run())
 }
 
-func BenchmarkCalebEncode100K(b *testing.B) {
-	src := make([]byte, 102400)
-	rand.Read(src)
+func BenchmarkCalebEncode(b *testing.B) {
+	for _, tc := range EncodeCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			var r string
+			for n := 0; n < b.N; n++ {
+				r = caleb.Encode(tc.Src)
+			}
 
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = caleb.Encode(src)
+			encoded = r
+		})
 	}
-
-	encoded = r
 }
 
-func BenchmarkMrTronEncode1K(b *testing.B) {
-	src := make([]byte, 1024)
-	rand.Read(src)
+func BenchmarkMrTronEncode(b *testing.B) {
+	for _, tc := range EncodeCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			var r string
+			for n := 0; n < b.N; n++ {
+				r = mrtron.Encode(tc.Src)
+			}
 
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = mrtron.Encode(src)
+			encoded = r
+		})
 	}
-
-	encoded = r
 }
 
-func BenchmarkMrTronEncode10K(b *testing.B) {
-	src := make([]byte, 10240)
-	rand.Read(src)
+func BenchmarkBtcutilEncode(b *testing.B) {
+	for _, tc := range EncodeCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			var r string
+			for n := 0; n < b.N; n++ {
+				r = btcutil.Encode(tc.Src)
+			}
 
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = mrtron.Encode(src)
+			encoded = r
+		})
 	}
-
-	encoded = r
-}
-
-func BenchmarkMrTronEncode100K(b *testing.B) {
-	src := make([]byte, 102400)
-	rand.Read(src)
-
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = mrtron.Encode(src)
-	}
-
-	encoded = r
-}
-
-func BenchmarkBtcutilEncode1K(b *testing.B) {
-	src := make([]byte, 1024)
-	rand.Read(src)
-
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = btcutil.Encode(src)
-	}
-
-	encoded = r
-}
-
-func BenchmarkBtcutilEncode10K(b *testing.B) {
-	src := make([]byte, 10240)
-	rand.Read(src)
-
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = btcutil.Encode(src)
-	}
-
-	encoded = r
-}
-
-func BenchmarkBtcutilEncode100K(b *testing.B) {
-	src := make([]byte, 102400)
-	rand.Read(src)
-
-	var r string
-	for n := 0; n < b.N; n++ {
-		r = btcutil.Encode(src)
-	}
-
-	encoded = r
 }
