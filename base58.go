@@ -280,9 +280,14 @@ func Decode(src string) (_ []byte, err error) {
 
 	tmp := []byte(src)
 
+	leading := true
 	for i, b := range tmp {
-		if b == '1' {
-			dst.WriteByte(0)
+		if leading {
+			if b == '1' {
+				dst.WriteByte(0)
+			} else {
+				leading = false
+			}
 		}
 
 		tmp[i], err = from58(b)
