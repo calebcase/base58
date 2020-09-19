@@ -11,6 +11,7 @@ import (
 )
 
 var encoded string
+var decoded []byte
 
 type EncodeCase struct {
 	Name string
@@ -18,6 +19,13 @@ type EncodeCase struct {
 }
 
 var EncodeCases []EncodeCase
+
+type DecodeCase struct {
+	Name string
+	Src  string
+}
+
+var DecodeCases []DecodeCase
 
 func TestMain(m *testing.M) {
 	KB1 := make([]byte, 1024)
@@ -41,6 +49,21 @@ func TestMain(m *testing.M) {
 		EncodeCase{
 			Name: "100K",
 			Src:  KB100,
+		},
+	}
+
+	DecodeCases = []DecodeCase{
+		DecodeCase{
+			Name: "1K",
+			Src:  caleb.Encode(KB1),
+		},
+		DecodeCase{
+			Name: "10K",
+			Src:  caleb.Encode(KB10),
+		},
+		DecodeCase{
+			Name: "100K",
+			Src:  caleb.Encode(KB100),
 		},
 	}
 
@@ -82,6 +105,53 @@ func BenchmarkBtcutilEncode(b *testing.B) {
 			}
 
 			encoded = r
+		})
+	}
+}
+
+func BenchmarkCalebDecode(b *testing.B) {
+	for _, tc := range DecodeCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			var r []byte
+			var err error
+			for n := 0; n < b.N; n++ {
+				r, err = caleb.Decode(tc.Src)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+
+			decoded = r
+		})
+	}
+}
+
+func BenchmarkMrTronDecode(b *testing.B) {
+	for _, tc := range DecodeCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			var r []byte
+			var err error
+			for n := 0; n < b.N; n++ {
+				r, err = mrtron.Decode(tc.Src)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+
+			decoded = r
+		})
+	}
+}
+
+func BenchmarkBtcutilDecode(b *testing.B) {
+	for _, tc := range DecodeCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			var r []byte
+			for n := 0; n < b.N; n++ {
+				r = btcutil.Decode(tc.Src)
+			}
+
+			decoded = r
 		})
 	}
 }
